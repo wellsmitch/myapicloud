@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <title>rongCloud</title>
+    <link rel="stylesheet" type="text/css" href="api.css"/>
+    <style>
+    </style>
+</head>
+<body>
+<div style="height: 200px;width: 200px;">rongCloud</div>
+</body>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/common.js"></script>
+<script type="text/javascript">
+    var rong;
+    var user;
+    apiready = function(){
+        user = $api.getStorage('user');
+        rong = api.require('rongCloud2');
+        rong.init(function(ret, err) {
+        });
+
+        setConnectionStatusListener();
+        rong.connect({
+            token: user.rong_token
+        },function(ret, err) {
+            setOnReceiveMessageListener();
+            getCurrentUserId();
+        });
+
+    };
+
+    // 获取当前用户id
+    function getCurrentUserId() {
+        rong.getCurrentUserId(function(ret, err) {
+            api.toast({ msg: ret.result });
+        })
+    }
+
+    // 获取消息通知免打扰时间
+    function getNotificationQuietHours() {
+        rong.getNotificationQuietHours(function(ret, err) {
+            api.toast({ msg: JSON.stringify(ret.result) });
+        })
+    }
+
+    // 移除消息免打扰时间
+    function removeNotificationQuietHours() {
+        rong.removeNotificationQuietHours(function(ret, err) {
+            api.toast({ msg: ret.status });
+        })
+    }
+
+    // 设置消息免打扰时间
+    function setNotificationQuietHours() {
+        rong.setNotificationQuietHours({
+            startTime: '22:00:00',
+            spanMinutes: 6
+        }, function(ret, err) {
+            api.toast({ msg: ret.status });
+        })
+    }
+
+    // 获取黑名单
+    function getBlacklist() {
+        rong.getBlacklist(function(ret, err) {
+            api.toast({ msg: JSON.stringify(ret.result) });
+        })
+    }
+
+    // 查看某用户是否在黑名单中
+    function getBlacklistStatus() {
+        rong.getBlacklistStatus({
+            userId: '171'
+        }, function(ret, err) {
+            api.toast({ msg: ret.status });
+        })
+    }
+
+    // 移除黑名单
+    function removeFromBlacklist() {
+        rong.removeFromBlacklist({
+            userId: '171'
+        }, function(ret, err) {
+            api.toast({ msg: ret.status });
+        })
+    }
+
+    // 加入黑名单
+    function addToBlacklist() {
+        rong.addToBlacklist({
+            userId: '171'
+        }, function(ret, err) {
+            api.toast({ msg: ret.status });
+        })
+    }
+
+    // 注销登录(不再接收 Push 消息)
+    function logout() {
+        rong.logout(function(ret, err) {
+            if (ret.status == 'error')
+                api.toast({ msg: err.code });
+        }); // 断开，且不再接收 Push
+    }
+
+    // 获取连接状态
+    function getConnectionStatus() {
+        rong.getConnectionStatus(function(ret, err) {
+            api.toast({ msg: ret.result.connectionStatus });
+        })
+    }
+
+    // 退出聊天室
+    function quitChatRoom() {
+        rong.quitChatRoom({
+            chatRoomId: '123'
+        }, function(ret, err) {
+            if (ret.status == 'success')
+                api.toast({ msg: JSON.stringify(ret.status) });
+            else
+                api.toast({ msg: err.code });
+        })
+    }
+
+    // 加入聊天室
+    function joinChatRoom() {
+        rong.joinChatRoom({
+            chatRoomId: '123',
+            defMessageCount: 20
+        }, function(ret, err) {
+            if (ret.status == 'success')
+                api.toast({ msg: JSON.stringify(ret.status) });
+            else
+                api.toast({ msg: err.code });
+        })
+    }
+
+
+    // 退出群组
+    function quitGroup() {
+        rong.quitGroup({
+            groupId: '123'
+        }, function(ret, err) {
+            if (ret.status == 'success')
+                api.toast({ msg: JSON.stringify(ret.status) });
+            else
+                api.toast({ msg: err.code });
+        })
+    }
+
+    // 加入群组
+    function joinGroup() {
+        rong.joinGroup({
+            groupId: '123',
+            groupName: 'Ski Club'
+        }, function(ret, err) {
+            if (ret.status == 'success')
+                api.toast({ msg: JSON.stringify(ret.status) });
+            else
+                api.toast({ msg: err.code });
+        })
+    }
+
+    // 同步当前用户所属群组到融云
+    function syncGroup() {
+        rong.syncGroup({
+            groups: [{
+                groupId: '123',
+                groupName: 'Ski Club',
+                portraitUrl: 'http://club.com/ski.jpg'
+            }, {
+                groupId: '456',
+                groupName: 'Diving Club',
+                portraitUrl: 'http://club.com/diving.jpg'
+            }]
+        }, function(ret, err) {
+            if (ret.status == 'success')
+                api.toast({ msg: JSON.stringify(ret.status) });
+            else
+                api.toast({ msg: err.code });
+        })
+    }
+
+    // 设置讨论组成员邀请权限,讨论组没有图像
+    function setDiscussionInviteStatus() {
+        rong.setDiscussionInviteStatus({
+            discussionId: 'e9f19096-5b44-4559-8eb0-0f139bde74e0',
+            inviteStatus: 'OPENED'
+        }, function(ret, err) {
+            if (ret.status == 'success')
+                api.toast({ msg: JSON.stringify(ret.status) });
+            else
+                api.toast({ msg: err.code });
+        })
+    }
+
+    // 退出讨论组,会使讨论组失效
+    function quitDiscussion() {
+        rong.quitDiscussion({
+            discussionId: 'e9f19096-5b44-4559-8eb0-0f139bde74e0'
+        }, function(ret, err) {
+            if (ret.status == 'success')
+                api.toast({ msg: JSON.stringify(ret.status) });
+            else
+                api.toast({ msg: err.code });
+        })
+    }
+
+    // 移除成员从讨论组
+    function removeMemberFromDiscussion() {
+        rong.removeMemberFromDiscussion({
+            discussionId: 'e9f19096-5b44-4559-8eb0-0f139bde74e0',
+            userId: '171'
+        }, function(ret, err) {
+            if (ret.status == 'success')
+                api.toast({ msg: JSON.stringify(ret.status) });
+            else
+                api.toast({ msg: err.code });
+        })
+    }
+
+    // 向讨论组添加成员
+    function addMemberToDiscussion() {
+        rong.addMemberToDiscussion({
+            discussionId: 'e9f19096-5b44-4559-8eb0-0f139bde74e0',
+            userIdList: ['16']
+        }, function(ret, err) {
+            if (ret.status == 'success')
+                api.toast({ msg: JSON.stringify(ret.status) });
+            else
+                api.toast({ msg: err.code });
+        })
+    }
+
+
+    // 获取讨论组
+    function getDiscussion(discussionId) {
+        rong.getDiscussion({
+            discussionId: discussionId
+        }, function(ret, err) {
+            if (ret.status == 'success')
+                alert(JSON.stringify(ret));
+            else
+                api.toast({ msg: err.code });
+        })
+    }
+
+    // 设置讨论组名称
+    function setDiscussionName() {
+        rong.setDiscussionName({
+            discussionId: 'e9f19096-5b44-4559-8eb0-0f139bde74e0',
+            name: '新讨论组名称'
+        }, function(ret, err) {
+            if (ret.status == 'success')
+                api.toast({ msg: JSON.stringify(ret.status) });
+            else
+                api.toast({ msg: err.code });
+        })
+    }
+
+
+    // 创建讨论组
+    function createDiscussion() {
+        rong.createDiscussion({
+            name: 'Ironman, Batman',
+            userIdList: ['172', '16']
+        }, function(ret, err) {
+            if (ret.status == 'success')
+            {
+                getDiscussion(ret.result.discussionId);
+            }
+            else
+            {
+                api.toast({ msg: err.code });
+            }
+        })
+    }
+
+
+    // 清除草稿会话,草稿估计只有一个
+    function clearTextMessageDraft() {
+        rong.clearTextMessageDraft({
+            conversationType: 'PRIVATE',
+            targetId: '172'
+        }, function(ret, err) {
+            api.toast({ msg: ret.status });
+        })
+    }
+
+    // 保存消息草稿
+    function saveTextMessageDraft() {
+        rong.saveTextMessageDraft({
+            conversationType: 'PRIVATE',
+            targetId: '172',
+            content: 'Hello w'
+        }, function(ret, err) {
+            api.toast({ msg: ret.status });
+        })
+    }
+
+    // 获取消息草稿
+    function getTextMessageDraft() {
+        rong.getTextMessageDraft({
+            conversationType: 'PRIVATE',
+            targetId: '172'
+        }, function(ret, err) {
+            api.toast({ msg: ret});
+        })
+    }
+
+
+    // 设置某一消息的附加信息
+    function setMessageExtra() {
+        rong.setMessageExtra({
+            messageId: '1',
+            value: '额外的信息'
+        }, function(ret, err) {
+            api.toast({ msg: ret.status });
+        })
+    }
+
+    // 清除某一会话的消息未读状态
+    function clearMessagesUnreadStatus() {
+        rong.clearMessagesUnreadStatus({
+            conversationType: 'PRIVATE',
+            targetId: '172'
+        }, function(ret, err) {
+            api.toast({ msg: ret.status });
+        })
+    }
+
+
+    // 设置接收的消息状态
+    function setMessageReceivedStatus() {
+        rong.setMessageReceivedStatus({
+            messageId: '1',
+            receivedStatus: 'READ'
+        }, function(ret, err) {
+            api.toast({ msg: ret.status });
+        })
+    }
+
+    // 获取某些类型的未读消息数
+    function getUnreadCountByConversationTypes() {
+        rong.getUnreadCountByConversationTypes({
+            conversationTypes: ['PRIVATE', 'GROUP']
+        }, function(ret, err) {
+            api.toast({ msg: ret.result });
+        })
+    }
+
+    // 获取某一会话的未读消息数
+    function getUnreadCount() {
+        rong.getUnreadCount({
+            conversationType: 'PRIVATE',
+            targetId: '172'
+        }, function(ret, err) {
+            api.toast({ msg: ret.result });
+        })
+    }
+
+    // 获取所有未读消息数
+    function getTotalUnreadCount() {
+        rong.getTotalUnreadCount(function(ret, err) {
+            api.toast({ msg: ret.result });
+        })
+    }
+
+
+    // 清空某一会话的所有聊天消息记录,清除的是融云系统的聊天数据
+    function clearMessages() {
+        rong.clearMessages({
+            conversationType: 'PRIVATE',
+            targetId: '172'
+        }, function(ret, err) {
+            api.toast({ msg: ret.status });
+        })
+    }
+
+
+    // 删除指定的一条或者一组消息
+    function deleteMessages() {
+        rong.deleteMessages({
+            messageIds: [50, 51] // 删除指定的id消息
+        }, function(ret, err) {
+            api.toast({ msg: ret.status });
+        })
+    }
+
+
+
+    // 获取历史消息通过对象名称
+    function getHistoryMessagesByObjectName() {
+        rong.getHistoryMessagesByObjectName({
+            conversationType: 'PRIVATE',
+            targetId: '172',
+            objectName: 'RC:TxtMsg',
+            oldestMessageId: 0,
+            count: 20
+        }, function(ret, err) {
+            api.toast({ msg: JSON.stringify(ret) });
+        })
+    }
+
+
+    // 获取消息记录
+    function getHistoryMessages() {
+        // 之前调用 init 和 connect 的代码省略
+        rong.getHistoryMessages({
+            conversationType: 'PRIVATE',
+            targetId: '172',
+            oldestMessageId: 0, // 获取此id之后的最新消息
+            count: 20
+        }, function(ret, err) {
+            api.toast({ msg: JSON.stringify(ret) });
+        })
+    }
+
+    // 获取某一会话的最新消息
+    function getLatestMessages() {
+        rong.getLatestMessages({
+            conversationType: 'PRIVATE',
+            targetId: '172',
+            count: 20
+        }, function(ret, err) {
+            api.toast({ msg: JSON.stringify(ret) });
+        })
+    }
+
+
+    // 获取某一会话的通知状态
+    function getConversationNotificationStatus() {
+        rong.getConversationNotificationStatus({
+            conversationType: 'PRIVATE',
+            targetId: '172'
+        }, function(ret, err) {
+            if (ret.status == 'success')
+                api.toast({ msg: ret.result.code });
+            else
+                api.toast({ msg: err.code });
+        })
+    }
+
+    // 设置会话置顶
+    function setConversationToTop() {
+        rong.setConversationToTop({
+            conversationType: 'PRIVATE',
+            targetId: '172',
+            isTop: true
+        }, function(ret, err) {
+            api.toast({ msg: ret.status });
+        })
+    }
+
+    // 清除所有会话
+    function clearConversations() {
+        rong.clearConversations({
+            conversationTypes: ['PRIVATE', 'GROUP']
+        }, function(ret, err) {
+            api.toast(JSON.stringify(ret));
+        })
+    }
+
+    // 移除会话
+    function removeConversation() {
+        rong.removeConversation({
+            conversationType: 'PRIVATE',
+            targetId: '172'
+        }, function(ret, err) {
+            api.toast(JSON.stringify(ret));
+        });
+    }
+
+
+    // 获取会话，会话最后一条消息
+    function getConversation() {
+        rong.getConversation({
+            conversationType: 'PRIVATE',
+            targetId: '172'
+        }, function(ret, err) {
+            api.toast({ msg: JSON.stringify(ret.result) });
+        })
+    }
+
+
+    // 监听消息接收
+    function setOnReceiveMessageListener() {
+        rong.setOnReceiveMessageListener(function(ret, err) {
+            api.toast({ msg: JSON.stringify(ret.result.message) });
+        })
+    }
+
+    // 发送命令消息
+    function sendCommandMessage() {
+        rong.sendCommandMessage({
+            conversationType: 'PRIVATE',
+            targetId: '172',
+            name: 'AddFriend',
+            data: '{\"inviteUserId\":16}'
+        }, function(ret, err) {
+            if (ret.status == 'prepare')
+                api.toast({ msg: JSON.stringify(ret.result.message) });
+            else if (ret.status == 'success')
+                api.toast({ msg: ret.result.message.messageId });
+            else if (ret.status == 'error')
+                api.toast({ msg: err.code });
+        });
+    }
+
+    // 发送命令消息
+    function sendCommandNotificationMessage() {
+        rong.sendCommandNotificationMessage({
+            conversationType: 'PRIVATE',
+            targetId: '172',
+            name: 'AddFriend',
+            data: '{\"inviteUserId\":16}'
+        }, function(ret, err) {
+            if (ret.status == 'prepare')
+                api.toast({ msg: JSON.stringify(ret.result.message) });
+            else if (ret.status == 'success')
+                api.toast({ msg: ret.result.message.messageId });
+            else if (ret.status == 'error')
+                api.toast({ msg: err.code });
+        });
+    }
+
+    // 发送位置消息 云路通APP暂不支持
+    function sendLocationMessage() {
+        rong.sendLocationMessage({
+            conversationType: 'PRIVATE',
+            targetId: '172',
+            latitude: 39.9139,
+            longitude: 116.3917,
+            poi: '北京市朝阳区北苑路北辰泰岳大厦',
+            imagePath: 'fs://res/test.jpg',
+            extra: ''
+        }, function(ret, err) {
+            if (ret.status == 'prepare')
+                api.toast({ msg: JSON.stringify(ret.result.message) });
+            else if (ret.status == 'progress')
+                api.toast({ msg: ret.result.progress });
+            else if (ret.status == 'success')
+                api.toast({ msg: ret.result.message.messageId });
+            else if (ret.status == 'error')
+                api.toast({ msg: err.code });
+        });
+    }
+
+
+    // 发送富文本文件 云路通APP暂不支持
+    function sendRichContentMessage(title,des,imageUrl) {
+        rong.sendRichContentMessage({
+            conversationType: 'PRIVATE',
+            targetId: '172',
+            title: title,
+            description: des,
+            imageUrl: imageUrl,
+            extra: ''
+        }, function(ret, err) {
+            if (ret.status == 'prepare')
+                api.toast({ msg: JSON.stringify(ret.result.message) });
+            else if (ret.status == 'success')
+                api.toast({ msg: ret.result.message.messageId });
+            else if (ret.status == 'error')
+                api.toast({ msg: err.code });
+        });
+    }
+
+    // 语音消息
+    function sendVoiceMessage(voicePath) {
+        rong.sendVoiceMessage({
+            conversationType: 'PRIVATE',
+            targetId: '172',
+            voicePath: voicePath,
+            duration: 5,
+            extra: ''
+        }, function(ret, err) {
+            if (ret.status == 'prepare')
+                api.toast({ msg: JSON.stringify(ret.result.message) });
+            else if (ret.status == 'success')
+                api.toast({ msg: ret.result.message.messageId });
+            else if (ret.status == 'error')
+                api.toast({ msg: err.code });
+        });
+    }
+
+    // 监听链接状态
+    function setConnectionStatusListener() {
+        rong.setConnectionStatusListener(function(ret, err) {
+            api.toast({ msg: ret.result.connectionStatus });
+        });
+    }
+
+    // 断开链接
+    function disconnect() {
+        // 之前调用 init 和 connect 的代码省略
+        rong.disconnect({
+            isReceivePush: true
+        }, function(ret, err) {
+            if ('success' == ret.status) {
+                api.toast({ msg: '断开连接成功!' });
+            }
+        });
+    }
+
+    // 发送文字消息
+    function sendTextMessage(msg) {
+        rong.sendTextMessage({
+            conversationType: 'PRIVATE',
+            targetId: '172',
+            text: msg,
+            extra: ''
+        }, function(ret, err) {
+            if (ret.status == 'prepare')
+                api.toast({ msg: JSON.stringify(ret.result.message) });
+            else if (ret.status == 'success')
+                api.toast({ msg: ret.result.message.messageId });
+            else if (ret.status == 'error')
+                api.toast({ msg: err.code });
+        });
+    }
+
+    // 发送图片消息
+    function sendImageMessage(imagePath) {
+        rong.sendImageMessage({
+            conversationType: 'PRIVATE',
+            targetId: '172',
+            imagePath: imagePath,
+            extra: ''
+        }, function(ret, err) {
+            if (ret.status == 'prepare')
+                api.toast({ msg: JSON.stringify(ret.result.message) });
+            else if (ret.status == 'progress')
+                api.toast({ msg: ret.result.progress });
+            else if (ret.status == 'success')
+                api.toast({ msg: ret.result.message.messageId });
+            else if (ret.status == 'error')
+                api.toast({ msg: err.code });
+        });
+    }
+</script>
+</html>
