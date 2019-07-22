@@ -1,0 +1,13 @@
+	api.setRefreshHeaderInfo({
+				visible: true,
+				loadingImg: '../image/refreshing_image_01.png',
+				bgColor: '#ccc',
+				textColor: '#fff',
+				textDown: '下拉刷新...aa',
+				textLoadin: '载入中',
+				textUp: '松手刷新...',
+				showTime: true
+			}, function(ret, err) {
+				alert('ajax拉取数据并拼装完毕！！！！');
+				api.refreshHeaderLoadDone();
+			});

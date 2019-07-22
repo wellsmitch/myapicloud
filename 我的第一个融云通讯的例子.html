@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <title>rongCloud</title>
+    <link rel="stylesheet" type="text/css" href="api.css"/>
+    <style>
+    </style>
+</head>
+<body>
+
+</body>
+<script type="text/javascript">
+    var rong = api.require('rongCloud2');
+    document.querySelector('#send').onclick = function() {
+        console.log(document.querySelector('#msg').value);
+        if(document.querySelector('#userid').value != '' && document.querySelector('#targetId').value) {
+            我的第一个融云通讯的例子(document.querySelector('#msg').value,document.querySelector('#targetId').value,document.querySelector('#userid').value)
+        }
+    }
+    function rongyun(con,targetId,myid) {
+        function rong_init() {
+            rong.init(function(ret, err) {
+                console.log(JSON.stringify(ret))
+                if (ret.status == 'error')
+                    console.log(err);
+
+                // api.toast({ msg: err.code });
+            });
+        }
+
+
+        // 获取token start
+
+        function rong_connect(token) {
+            rong.connect({
+                token: token
+            }, function(ret, err) {
+                if (ret.status == 'success') {
+                    // api.toast({ msg: ret.result.userId });
+                    console.log(JSON.stringify(ret));
+
+                } else {
+                    console.log(JSON.stringify(err))
+                }
+            });
+        }
+        var userId = myid; //会员id
+        var name = '这是我的昵称'; //会员昵称
+        var portraitUri = 'https://developer.rongcloud.cn/static/images/logo_blue1.png?234'; //会员头像
+        var appKey = "mgb7ka1nmdp6g";
+        var appSecret = "q646QVX9gume";
+        var nonce = Math.floor(Math.random() * 1000000); //随机数
+        var timestamp = Date.now(); //时间戳
+        var signature = sha1("" + appSecret + nonce + timestamp); //数据签名(通过哈希加密计算)
+        var token = '';
+        api.ajax({
+            url: "http://api.cn.ronghub.com/user/getToken.json",
+            method: "post",
+            headers: {
+                "RC-App-Key": appKey,
+                "RC-Nonce": "" + nonce,
+                "RC-Timestamp": "" + timestamp,
+                "RC-Signature": "" + signature,
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            data: {
+                values: {
+                    userId: myid,
+                    name: name,
+                    portraitUri: portraitUri
+                }
+            }
+        }, function(ret, err) {
+            if (ret) {
+                console.log(JSON.stringify(ret));
+                token = ret.token
+                console.log(token);
+
+
+                rong_init()
+                // alert(888)
+                rong.setOnReceiveMessageListener(function(ret, err) {
+                    alert('JSON.stringify(ret)');
+                    alert(JSON.stringify(ret));
+                    if (err) {
+                        console.log(err);
+                    }
+                    console.log(JSON.stringify(ret));
+                    // console.log(ret.result.message.left);
+
+                })
+
+                rong_connect(token)
+                //	$api.setStorage('token', ret.token);//将token存储到本地
+            } else {
+                alert("获取token失败")
+            }
+
+            rong.sendTextMessage({
+                conversationType: 'PRIVATE',
+                targetId: targetId,
+                text: con,
+                extra: ''
+            }, function(ret, err) {
+                console.log(JSON.stringify(ret));
+                if (ret.status == 'prepare')
+                    api.toast({
+                        msg: JSON.stringify(ret.result.message)
+                    });
+                else if (ret.status == 'success')
+                    api.toast({
+                        msg: ret.result.message.messageId
+                    });
+                else if (ret.status == 'error')
+                    api.toast({
+                        msg: err.code
+                    });
+            });
+
+        });
+
+        // 获取token  end
+
+    }
+
+
+</script>
+</html>
